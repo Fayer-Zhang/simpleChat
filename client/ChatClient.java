@@ -66,6 +66,19 @@ public class ChatClient extends AbstractClient
    */
   public void handleMessageFromClientUI(String message)
   {
+	//Exercise 2-(a)
+	if(message.charAt(0)=='#')
+	{
+		try
+		{
+			handleCommandsFromClients(message);	
+		}
+		catch(IOException e)
+		{
+			System.out.println(e);
+		}
+	}
+	
     try
     {
       sendToServer(message);
@@ -76,6 +89,78 @@ public class ChatClient extends AbstractClient
         ("Could not send message to server.  Terminating client.");
       quit();
     }
+  }
+  
+  //Exercise 2-(a)
+  private void handleCommandsFromClients(String commands) throws IOException
+  {
+	  String[] splittedCommands = commands.split("\\s+",2);
+	  String mainCommand = splittedCommands[0];
+	  String setCommand = splittedCommands[1];
+	  
+	  if(mainCommand == "#quit")
+	  {
+		quit();
+	  }
+	  
+	  else if(mainCommand == "#logoff")
+	  {
+		closeConnection();
+	  }
+	  
+	  else if(mainCommand == "#sethost")
+	  {
+		if(isConnected() == false)
+		{
+			String host = setCommand.replace("<", "").replace(">", "");
+			setHost(host);
+		}
+		else
+		{
+			throw new IOException("You need to log off first.");
+		}
+	  }
+	  
+	  else if(mainCommand == "#setport")
+	  {
+		if(isConnected() == false)
+		{
+			String portNumber = setCommand.replace("<", "").replace(">", "");
+			int port = Integer.parseInt(portNumber);
+			setPort(port);
+		}
+		else
+		{
+			throw new IOException("You need to log off first.");
+		}		  
+	  }
+	  
+	  else if(mainCommand == "#login")
+	  {
+		  if(isConnected() == false)
+		  {
+			 openConnection();
+		  }
+		  else
+		  {
+			  throw new IOException("You need to log off first.");
+		  }
+	  }
+	  
+	  else if(mainCommand == "#gethost")
+	  {
+		  clientUI.display("The current host name: " + getHost());
+	  }
+	  
+	  else if(mainCommand == "#getport")
+	  {
+		  clientUI.display("The current port number: " + getPort());
+	  }
+	  
+	  else
+	  {
+		  throw new IOException("The command is invalid.");
+	  }
   }
   
   /**

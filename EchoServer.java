@@ -59,8 +59,56 @@ public class EchoServer extends AbstractServer
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
   {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+	
+	//Exercise 3-(c)  
+	boolean firstCommand = (boolean)client.getInfo("First command received after a client connects");
+	String commands = msg.toString();
+	String[] splittedCommands = commands.split("\\s+",2);
+	String mainCommand = splittedCommands[0];
+	String setCommand = splittedCommands[1];
+	
+	if(firstCommand == true)
+	{
+		client.setInfo("First command received after a client connects", true);
+			
+		if(mainCommand == "#login")
+		{
+			client.setInfo("loginid", setCommand);
+		}
+		else
+		{
+			try
+			{
+				client.sendToClient("You need to login first");
+				client.close();
+			}
+			catch(IOException e)
+			{
+				System.out.println(e);
+			}
+		}
+	}
+	
+	else
+	{
+		if(mainCommand == "#login")
+		{
+			try
+			{
+				client.sendToClient("The login command is invalid");
+				client.close();
+			}
+			catch(IOException e)
+			{
+				System.out.println(e);
+			}
+		}
+		
+		System.out.println("Message received: " + msg + " from " + client.getInfo("loginid"));
+		this.sendToAllClients((String)client.getInfo("loginid") + ">" + msg);
+	}
+	
+    
   }
   
   
@@ -173,6 +221,7 @@ public class EchoServer extends AbstractServer
   protected void clientConnected(ConnectionToClient client) 
   {
 	  System.out.println("A client connects.");
+	  client.setInfo("First command received after a client connects", true);
   }
   
   //Exercise 1-(c)

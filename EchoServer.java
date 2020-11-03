@@ -4,7 +4,7 @@
 
 import java.io.*;
 import ocsf.server.*;
-
+import common.*;  //Exercise 2-(b)
 /**
  * This class overrides some of the methods in the abstract 
  * superclass in order to give more functionality to the server.
@@ -24,6 +24,11 @@ public class EchoServer extends AbstractServer
    */
   final public static int DEFAULT_PORT = 5555;
   
+  ChatIF serverUI; //Exercise 2-(b)
+  
+  boolean serverIsConnected; //Exercise 2-(c)
+  
+  
   //Constructors ****************************************************
   
   /**
@@ -35,7 +40,13 @@ public class EchoServer extends AbstractServer
   {
     super(port);
   }
-
+  
+  //Exercise 2-(b)
+  public EchoServer(int port, ChatIF serverUI) throws IOException 
+  {
+	  super(port); //Call the superclass constructor
+	  this.serverUI = serverUI;
+  }
   
   //Instance methods ************************************************
   
@@ -51,6 +62,88 @@ public class EchoServer extends AbstractServer
     System.out.println("Message received: " + msg + " from " + client);
     this.sendToAllClients(msg);
   }
+  
+  
+  //Exercise 2-(b)&(c)
+  public void handleMessageFromServerUI(String message)
+  {
+	  if(message.charAt(0)=='#')
+	  {
+		try
+		{
+			handleCommandsFromServer(message);	
+		}
+		catch(IOException e)
+		{
+			System.out.println(e);
+		}
+	  }
+		
+	  else
+	  {
+		  serverUI.display("SERVER MSG>" + message);
+		  sendToAllClients("SERVER MSG>" + message);
+	  }
+  }
+  
+  //Exercise 2-(c)
+  private void handleCommandsFromServer(String commands) throws IOException
+  {
+	  String[] splittedCommands = commands.split("\\s+",2);
+	  String mainCommand = splittedCommands[0];
+	  String setCommand = splittedCommands[1];
+	  
+	  if(mainCommand == "#quit")
+	  {
+		System.exit(0);
+	  }
+	  
+	  else if(mainCommand == "#stop")
+	  {
+		stopListening();
+	  }
+	  
+	  else if(mainCommand == "#close")
+	  {
+		  close();
+	  }
+	  
+	  else if(mainCommand == "#setport")
+	  {
+		if(serverIsConnected == false)
+		{
+			String portNumber = setCommand.replace("<", "").replace(">", "");
+			int port = Integer.parseInt(portNumber);
+			setPort(port);
+		}
+		else
+		{
+			throw new IOException("You need to close the server first.");
+		}		  
+	  }
+	  
+	  else if(mainCommand == "#start")
+	  {
+		  if(serverIsConnected == false)
+		  {
+			 listen();
+		  }
+		  else
+		  {
+			  throw new IOException("You need to close the server first.");
+		  }
+	  }
+	  
+	  else if(mainCommand == "#getport")
+	  {
+		  serverUI.display("The current port number: " + getPort());
+	  }
+	  
+	  else
+	  {
+		  throw new IOException("The command is invalid.");
+	  }
+  }  
     
   /**
    * This method overrides the one in the superclass.  Called
@@ -60,6 +153,7 @@ public class EchoServer extends AbstractServer
   {
     System.out.println
       ("Server listening for connections on port " + getPort());
+    serverIsConnected = true; //Exercise 2-(c)
   }
   
   /**
@@ -70,6 +164,7 @@ public class EchoServer extends AbstractServer
   {
     System.out.println
       ("Server has stopped listening for connections.");
+    serverIsConnected = false; //Exercise 2-(c)
   }
   
   //Class methods ***************************************************

@@ -5,6 +5,7 @@
 import java.io.*;
 import java.util.Scanner;
 
+import ocsf.client.*;
 import client.*;
 import common.*;
 
@@ -39,7 +40,7 @@ public class ClientConsole implements ChatIF
   /**
    * Scanner to read from the console
    */
-  Scanner fromConsole; 
+  //Scanner fromConsole; 
 
   
   //Constructors ****************************************************
@@ -56,17 +57,13 @@ public class ClientConsole implements ChatIF
     {
       client= new ChatClient(loginid, host, port, this); //Exercise 3-(a)
       
-      
     } 
-    catch(IOException exception) 
+    catch(IOException e) 
     {
-      System.out.println("Error: Can't setup connection!"
-                + " Terminating client.");
-      System.exit(1);
+      System.out.println("Cannot open connection.  Awaiting command.");
+      //System.exit(1);
     }
     
-    // Create scanner object to read from console
-    fromConsole = new Scanner(System.in); 
   }
 
   
@@ -80,13 +77,15 @@ public class ClientConsole implements ChatIF
   {
     try
     {
-
+      BufferedReader fromConsole = new BufferedReader(new InputStreamReader(System.in));
       String message;
 
       while (true) 
       {
-        message = fromConsole.nextLine();
+        message = fromConsole.readLine();
+        System.out.println("accept");
         client.handleMessageFromClientUI(message);
+        System.out.println("accept1");
       }
     } 
     catch (Exception ex) 
@@ -128,8 +127,8 @@ public class ClientConsole implements ChatIF
     }
     catch(ArrayIndexOutOfBoundsException e)
     {
-    	System.out.println("The loginid is not provided.");
-    	System.exit(0);
+    	System.out.println("ERROR - No login ID specified. Connection aborted");
+    	//System.exit(0);
     }
     
     try

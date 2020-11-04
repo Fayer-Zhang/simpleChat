@@ -1,6 +1,7 @@
 import java.io.*;
 import common.*;
 import java.util.Scanner;
+import ocsf.server.*;
 
 public class ServerConsole implements ChatIF{
 	
@@ -18,25 +19,16 @@ public class ServerConsole implements ChatIF{
 	/**
 	 * Scanner to read from the console
 	 */
-	Scanner fromConsole;
+	//Scanner fromConsole;
 	
 	
 	//Constructors ****************************************************
 	public ServerConsole(int port)
 	{
-		try 
-	    {
-			server = new EchoServer(port, this);
-	    }
-	    
-	    catch(IOException exception) 
-	    {
-	      System.out.println("Error: Can't setup connection!");
-	      System.exit(1);
-	    }
 		
+		server = new EchoServer(port,this);
 		// Create scanner object to read from console
-	    fromConsole = new Scanner(System.in);
+	    //fromConsole = new Scanner(System.in);
 	}
 
 	
@@ -45,12 +37,12 @@ public class ServerConsole implements ChatIF{
 	{
 		try
 	    {
-
+		  BufferedReader fromConsole = new BufferedReader(new InputStreamReader(System.in));
 	      String message;
-
+	      
 	      while (true) 
 	      {
-	        message = fromConsole.nextLine();
+	        message = fromConsole.readLine();
 	        server.handleMessageFromServerUI(message);
 	      }
 	    } 
@@ -83,8 +75,17 @@ public class ServerConsole implements ChatIF{
 	  {
 	    port = DEFAULT_PORT; //Set port to 5555
 	  }
-	    
+	  
 	  ServerConsole chat= new ServerConsole(port);
+	  
+	  try 
+	  {
+		  chat.server.listen(); //Start listening for connections
+	  } 
+	  catch (Exception ex) 
+	  {
+		  System.out.println("ERROR - Could not listen for clients!");
+	  }
 	  chat.accept();  //Wait for console data
 	}
 }

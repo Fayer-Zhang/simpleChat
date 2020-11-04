@@ -42,7 +42,7 @@ public class EchoServer extends AbstractServer
   }
   
   //Exercise 2-(b)
-  public EchoServer(int port, ChatIF serverUI) throws IOException 
+  public EchoServer(int port, ChatIF serverUI) 
   {
 	  super(port); //Call the superclass constructor
 	  this.serverUI = serverUI;
@@ -60,54 +60,43 @@ public class EchoServer extends AbstractServer
     (Object msg, ConnectionToClient client)
   {
 	
-	//Exercise 3-(c)  
-	boolean firstCommand = (boolean)client.getInfo("First command received after a client connects");
-	String commands = msg.toString();
-	String[] splittedCommands = commands.split("\\s+",2);
-	String mainCommand = splittedCommands[0];
-	String setCommand = splittedCommands[1];
-	
-	if(firstCommand == true)
-	{
-		client.setInfo("First command received after a client connects", true);
-			
-		if(mainCommand == "#login")
-		{
-			client.setInfo("loginid", setCommand);
-		}
-		else
-		{
-			try
-			{
-				client.sendToClient("You need to login first");
-				client.close();
-			}
-			catch(IOException e)
-			{
-				System.out.println(e);
-			}
-		}
-	}
-	
-	else
-	{
-		if(mainCommand == "#login")
-		{
-			try
-			{
-				client.sendToClient("The login command is invalid");
-				client.close();
-			}
-			catch(IOException e)
-			{
-				System.out.println(e);
-			}
-		}
+	//Exercise 3-(c)
+	  boolean firstCommand = (boolean)client.getInfo("First command received after a client connects");
+	  String commands = msg.toString();
+	  String[] splittedCommands = commands.split("\\s+",2);
+	  String mainCommand = splittedCommands[0];
+	  
+	  if(firstCommand == true){	
 		
-		System.out.println("Message received: " + msg + " from " + client.getInfo("loginid"));
-		this.sendToAllClients((String)client.getInfo("loginid") + ">" + msg);
-	}
-	
+			client.setInfo("First command received after a client connects", false);
+			
+			if(mainCommand.equals("#login"))
+			{
+				String setCommand = splittedCommands[1];
+				client.setInfo("loginID", setCommand);
+			}
+			
+			else{
+				try{
+					client.sendToClient("You need to login first");
+					client.close();
+				}
+				catch(IOException e){
+				}
+			}
+		}
+	  
+		else{
+			if(mainCommand.equals("#login")){
+				try{
+					client.sendToClient("You have already logged in");
+				}
+				catch(IOException e){
+				}
+			}
+		    System.out.println("Message received: <" + msg + "> from <" + client.getInfo("loginID") + ">");
+		    this.sendToAllClients((String)client.getInfo("loginID")+ ">"+ msg);
+		}
     
   }
   
@@ -115,6 +104,7 @@ public class EchoServer extends AbstractServer
   //Exercise 2-(b)&(c)
   public void handleMessageFromServerUI(String message)
   {
+
 	  if(message.charAt(0)=='#')
 	  {
 		try
@@ -135,33 +125,33 @@ public class EchoServer extends AbstractServer
   }
   
   //Exercise 2-(c)
-  private void handleCommandsFromServer(String commands) throws IOException
+  private void handleCommandsFromServer(String command) throws IOException
   {
-	  String[] splittedCommands = commands.split("\\s+",2);
-	  String mainCommand = splittedCommands[0];
-	  String setCommand = splittedCommands[1];
+	  String[] commandArray = command.split(" ", 2);
+	  String mainCommand = commandArray[0];	  
 	  
-	  if(mainCommand == "#quit")
+	  if(mainCommand.equals("#quit"))
 	  {
-		System.exit(0);
+		  System.exit(0); 
 	  }
-	  
-	  else if(mainCommand == "#stop")
+	  else if(mainCommand.equals("#stop"))
 	  {
 		stopListening();
 	  }
-	  
-	  else if(mainCommand == "#close")
+
+	  else if(mainCommand.equals("#close"))
 	  {
 		  close();
 	  }
-	  
-	  else if(mainCommand == "#setport")
+
+	  else if(mainCommand.equals("#setport"))
 	  {
 		if(serverIsConnected == false)
 		{
+			String setCommand = commandArray[1];
 			String portNumber = setCommand.replace("<", "").replace(">", "");
 			int port = Integer.parseInt(portNumber);
+			
 			setPort(port);
 		}
 		else
@@ -169,8 +159,8 @@ public class EchoServer extends AbstractServer
 			throw new IOException("You need to close the server first.");
 		}		  
 	  }
-	  
-	  else if(mainCommand == "#start")
+
+	  else if(mainCommand.equals("#start"))
 	  {
 		  if(serverIsConnected == false)
 		  {
@@ -181,12 +171,12 @@ public class EchoServer extends AbstractServer
 			  throw new IOException("You need to close the server first.");
 		  }
 	  }
-	  
-	  else if(mainCommand == "#getport")
+
+	  else if(mainCommand.equals("#getport"))
 	  {
 		  serverUI.display("The current port number: " + getPort());
 	  }
-	  
+
 	  else
 	  {
 		  throw new IOException("The command is invalid.");
@@ -210,8 +200,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStopped()
   {
-    System.out.println
-      ("Server has stopped listening for connections.");
+    System.out.println("Server has stopped listening for connections.");
     serverIsConnected = false; //Exercise 2-(c)
   }
   
@@ -220,20 +209,24 @@ public class EchoServer extends AbstractServer
   //Exercise 1-(c)
   protected void clientConnected(ConnectionToClient client) 
   {
-	  System.out.println("A client connects.");
+	  System.out.println("A new client is attempting to connect to the server.");
+	  System.out.println("Message received: #login <" + (String)client.getInfo("loginID") + "> from null." );
+	  System.out.println("<" + (String)client.getInfo("loginID") + "> has logged on.");
 	  client.setInfo("First command received after a client connects", true);
   }
   
   //Exercise 1-(c)
   synchronized protected void clientDisconnected(ConnectionToClient client) 
   {
-	  System.out.println("A client disconnects.");
+	  System.out.println("WARNING - The server has stopped listening for connections");
+	  System.out.println("SERVER SHUTTING DOWN! DISCONNECTING!");
+	  System.out.println("Abnormal termination of connection.");
   }
   
   //Exercise 1-(c)
   synchronized protected void clientException(ConnectionToClient client, Throwable exception) 
   {
-	  System.out.println("A client disconnects.");
+	  System.out.println((String)client.getInfo("loginID") + " has disconnected.");
   }
   
   /**
